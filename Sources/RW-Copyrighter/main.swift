@@ -41,8 +41,25 @@ func prependTextIfNeeded(_ text: String, to file: Files.File, fileTypes: Set<Str
         return false
     }
 
-    let fileContents = try file.readAsString()
-    try file.write(string: text + fileContents)
+    let initialFileContents = try file.readAsString()
+    let finalFileContents: String
+
+    //TODO: refactor it in a different way in case there are more edge cases
+    switch file.name {
+    case "Package.swift":
+        if let firstLineBreakIndex = initialFileContents.firstIndex(of: "\n") {
+            var final = initialFileContents
+            final.insert(contentsOf: "\n" + text, at: initialFileContents.index(after: firstLineBreakIndex))
+            finalFileContents = final
+        } else {
+            finalFileContents = text + initialFileContents
+        }
+    default:
+        finalFileContents = text + initialFileContents
+    }
+
+    try file.write(string: finalFileContents)
+
     return true
 }
 
